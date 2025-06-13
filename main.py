@@ -9,6 +9,11 @@ from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import os
 import re
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -43,7 +48,6 @@ st.title("GitHub Repository Q&A System")
 def validate_github_url(url):
     """Validate GitHub repository URL or owner/repo format."""
     url = url.strip()
-    # Matches https://github.com/owner/repo or owner/repo
     pattern = r"^(https://github\.com/)?([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)$"
     match = re.match(pattern, url)
     if match:
@@ -74,7 +78,7 @@ if submit_button and repo_url and user_query:
             # Load files from the GitHub repository
             docs = loader.load_files(repo)
             if not docs:
-                st.error("No files loaded from the repository.")
+                st.error("No files loaded from the repository. Check the repository URL, ensure it contains files, or verify your GitHub token has 'public_repo' scope.")
                 st.stop()
 
             # Separate text and code files
@@ -99,11 +103,11 @@ if submit_button and repo_url and user_query:
             # Initialize LLM
             llm = ChatGroq(
                 model='llama-3.1-8b-instant', 
+                max_tokens=1024,
                 temperature=1.5, 
                 timeout=None,
-                max_retries=2,
-            )
-
+                max_retries=2,   
+            )   
 
             # Define prompt template
             prompt_template = """Answer the following question based on the provided context from a GitHub repository. If the context is insufficient, say so and provide a general answer if possible.

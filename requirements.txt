@@ -1,0 +1,62 @@
+# LangChain Core
+langchain
+langchain-core
+
+# OpenAI Integration
+langchain-openai
+openai
+
+# Anthropic Integration
+langchain-anthropic
+
+# Google Gemini (PaLM) Integration
+langchain-google-genai
+google-generativeai
+
+# Hugging Face Integration
+langchain-huggingface
+transformers
+huggingface-hub
+
+# Environment Variable Management
+python-dotenv
+
+# Machine Learning Utilities
+numpy
+scikit-learn
+
+# Groq
+langchain-groq
+
+# streamlit
+streamlit
+
+# LangChain Text Splitters and Document Loaders
+langchain-text-splitters
+
+# Vector Store Integrations
+langchain-chroma  # For Chroma vector store
+langchain-pinecone  # For Pinecone vector store
+pinecone-client  # Required for Pinecone integration
+
+# Tool and Agent Utilities
+langchainhub  # For accessing pre-built LangChain tools and prompts
+
+# Data Processing and Utilities
+pandas  # For handling structured data
+pyyaml  # For configuration file handling (used in LangChain setups)
+requests  # For API calls in LangChain integrations
+pydantic  # For data validation, heavily used in LangChain
+
+# Asynchronous Support
+aiohttp  # For async HTTP requests in LangChain
+
+# File Handling for Document Loaders
+PyPDF2  # For PDF document loading
+docx2txt  # For Word document loading
+
+langchain_community
+PyGithub
+
+langchain-experimental
+faiss-cpu
