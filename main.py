@@ -1,11 +1,12 @@
 import streamlit as st
 from document_loader import DocumentLoader
 from text_splitter import TextSplitter
+from prompts import create_prompt_templates, get_prompt_variables
 from langchain_huggingface import HuggingFaceEndpoint
-from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage
 from dotenv import load_dotenv
 import os
 import re
@@ -14,6 +15,10 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize session state for chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 # Load environment variables
 load_dotenv()
@@ -39,7 +44,6 @@ st.markdown("""
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     line-height: 1.6;
     }
-
     </style>
 """, unsafe_allow_html=True)
 st.title("GitHub Repository Q&A System")
@@ -102,30 +106,23 @@ if submit_button and repo_url and user_query:
 
             # Initialize LLM
             llm = ChatGroq(
-                model='llama-3.1-8b-instant', 
+                model='llama-3.1-8b-instant',
                 max_tokens=1024,
-                temperature=1.5, 
+                temperature=1.5,
                 timeout=None,
-                max_retries=2,   
-            )   
-
-            # Define prompt template
-            prompt_template = """Answer the following question based on the provided context from a GitHub repository. If the context is insufficient, say so and provide a general answer if possible.
-
-Question: {question}
-
-Context:
-{context}
-
-Answer:"""
-            prompt = PromptTemplate(
-                template=prompt_template,
-                input_variables=["question", "context"]
+                max_retries=2,
             )
 
-            # Build the chain
+            # Create prompt template
+            prompt = create_prompt_templates()
+
+            # Build the chain with defensive chat_history access
             chain = (
-                {"context": retriever | (lambda docs: "\n\n".join(doc.page_content for doc in docs)), "question": RunnablePassthrough()}
+                {
+                    "context": retriever | (lambda docs: "\n\n".join(doc.page_content for doc in docs)),
+                    "chat_history": lambda x: st.session_state.get("chat_history", []),
+                    "query": RunnablePassthrough()
+                }
                 | prompt
                 | llm
                 | StrOutputParser()
@@ -133,6 +130,12 @@ Answer:"""
 
             # Get the answer
             answer = chain.invoke(user_query)
+
+            # Update chat history
+            st.session_state.chat_history.append(HumanMessage(content=user_query))
+            st.session_state.chat_history.append(HumanMessage(content=answer))
+
+            # Display the answer
             st.markdown(f"<div class='output-text'>**Answer:**\n{answer}</div>", unsafe_allow_html=True)
 
         except Exception as e:
